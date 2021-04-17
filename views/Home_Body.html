@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MainBody</title>
+    <style>
+        @font-face {
+            font-family: 方正喵呜体;
+            src: url("/resources/fonts/方正喵呜体.ttf") format('truetype');
+        }
+
+        form{
+            font-size: xx-large;
+        }
+        h1{
+            font-size: xx-large;
+        }
+        table{
+            width: 100%;
+            padding: 12px 20px;
+            /*margin: 8px 0;*/
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: 方正喵呜体;
+            font-size: x-large;
+            font-weight: bolder;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+        input[type=button] {
+            background-color: #008CBA;
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <table>
+        <tr>
+            <td width="80%">
+                <h2 align="center" >记事本</h2>
+            </td>
+            <td>
+                <input type="button" value="添加便签" onclick='location.href=("/addNote")'/>
+            </td>
+        </tr>
+    </table>
+<!--    <h2 align="center" >记事本</h2>-->
+<!--&lt;!&ndash;    <a class="btn" href="/addNote">添加便签</a><br>&ndash;&gt;-->
+<!--    <input type="button" value="添加便签" onclick='location.href=("/addNote")'/>-->
+    <div>
+        <table width="100%">
+            {{each orders as order index}}
+            <tr>
+                <td width="10%">{{index}}</td>
+                <td width="60%">{{order.note}}</td>
+                <td width="25%">{{order.createTime}}</td>
+<!--                <td width="5%"><button onclick="removeNote(this)">删除</button></td>-->
+                <td width="5%"><button onclick="removeNote(this)">删除</button></td>
+            </tr>
+            {{/each}}
+
+        </table>
+
+<!--        <ul>-->
+<!--            {{each orders as order index}}-->
+<!--            <li>-->
+<!--                {{index}} {{order.note}}-->
+<!--                <span>{{order.createTime}}</span>-->
+<!--            </li>-->
+<!--            {{/each}}-->
+<!--        </ul>-->
+
+    </div>
+
+    <script src="js/axios.min.js"></script>
+    <script>
+        function removeNote(obj) {  //obj是自己这个对象
+          console.log('发送请求，删除便签！')
+          var index = obj.parentNode.parentNode.cells[0].innerHTML
+          // console.log('index:',index)
+          axios.get('/doRemoveNote', {
+            params:{
+              index: index
+            }
+          })
+              .then(function (response) {
+                console.log(response);
+                location.reload();
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
+        }
+
+    </script>
+</body>
+
+</html>

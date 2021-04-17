@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="js/jquery-3.6.0.js"></script>
+    <style>
+        #musicListTable{
+            color:rebeccapurple;
+            font-family: "楷体";
+            font-weight: bold ;
+            background: rgba(255,255,255,0.4);
+        }
+        #currentMusic{
+            color:darkblue;
+            font-family: "楷体";
+            font-weight: bold ;
+        }
+        #albumImg{
+            border-radius:300px;
+            width: 400px;
+            height: 400px;
+            -webkit-animation:run 6s linear 0s infinite;
+        }
+        #albumImg:hover{  //鼠标悬浮
+        -webkit-animation-play-state:paused;
+        }
+        @-webkit-keyframes run{
+            from{
+                -webkit-transform:rotate(0deg);
+            }
+            to{
+                -webkit-transform:rotate(360deg);
+            }
+        }
+        h2{
+            font-size: xxx-large;
+        }
+        input{
+            font-size: xx-large;
+        }
+        table{
+            font-size: xxx-large;
+        }
+        audio{
+            font-size: xxx-large;
+            /*height:400px;*/
+            width:600px;
+        }
+    </style>
+</head>
+
+
+<body>
+<h2 align="center">工具栏</h2>
+<hr>
+<form id="form">
+    <input type="text" id="musicSearch" placeholder="歌曲搜索" onkeydown="if(event.keyCode==13){searchMusic();event.keyCode=0;event.returnValue=false;}">
+    <input type="button" id="execSearch" value="搜索" onclick="searchMusic();">
+</form>
+
+<hr>
+
+<table id="toolTable" width="100%">
+    <font style="font-family: 华文隶书">
+        <!--            <tr>-->
+        <!--                <p align="center">正在播放的歌曲：</p>-->
+        <!--            </tr>-->
+        <tr>
+            <table>
+                <tr>
+                    <td>
+                           <span>
+                                <img id="albumImg" src="resources/defaultAlbumImg.jpg" width="50px" height="50px">
+                            </span>
+                    </td>
+                    <td  style="text-align: center">
+                        <span id="currentMusic" >请搜索并点击播放歌曲</span>
+                    </td>
+                </tr>
+            </table>
+
+        </tr>
+    </font>
+    <!--        <tr>-->
+    <!--            <img id="albumImg" src="" width="100%">-->
+    <!--        </tr>-->
+    <tr colspan="2">
+        <audio controls id="music_player" >
+            <source src="https://music.163.com/song/media/outer/url?id=1465162316.mp3">
+        </audio>
+        <script>
+          document.getElementById("albumImg").style.animationPlayState="paused";
+
+          var audio=document.getElementById("music_player")
+          audio.onpause=function (){
+            // alert("暂停播放了")
+            document.getElementById("albumImg").style.animationPlayState="paused";
+            // document.getElementById("albumImg").style.webkitAnimationPlayState="paused";
+          }
+          audio.onplay=function (){
+            // alert("开始播放了")
+            document.getElementById("albumImg").style.animationPlayState="running";
+            // document.getElementById("albumImg").style.webkitAnimationPlayState="running";
+          }
+        </script>
+    </tr>
+    <tr>
+        <div style="overflow:auto;height: 1200px">
+            <table  id="musicListTable">
+
+            </table>
+        </div>
+
+    </tr>
+</table>
+
+<!--    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>-->
+<script src="js/axios.min.js"></script>
+<script>
+  <!--    网易云音乐搜索官网网址：    -->
+  // https://music.163.com/#/search/m/?s=搜索内容&type=1
+  // 搜索接口：http://musicapi.leanapp.cn/search?keywords=关键词
+  // 歌曲直链接口：https://music.163.com/song/media/outer/url?id=歌曲id.mp3
+
+  //获取歌曲信息，动态更新html元素
+  function  addAudioControlToTable(url){
+    let parent=document.getElementById("musicListTable");
+    let tr=document.createElement("tr");
+    tr.append("123")
+    let audio=document.createElement("audio");
+    audio.setAttribute( "controls","controls")
+    let source=document.createElement("source");
+    source.src="https://music.163.com/song/media/outer/url?id=1465162316.mp3"
+    // source.src=url
+    audio.appendChild(source);
+    tr.appendChild(audio)
+    parent.append(tr);
+  }
+
+
+
+  function playmusic(evt){
+    evt = evt || window.event;
+    var obj = evt.target ||evt.srcElement ;
+    console.log(obj)
+    console.log("鼠标点击了元素id："+obj.id);
+    var url="https://music.163.com/song/media/outer/url?id="+obj.id+".mp3"
+    document.getElementById("music_player").setAttribute("src",url);
+    document.getElementById("music_player").play();
+
+    //设置当前播放歌曲：根据歌曲id调用搜索接口获取歌曲名
+    axios.get('http://musicapi.leanapp.cn/search?keywords='+obj.id)
+        .then(function (respond) {
+          // console.log(respond);
+          console.log(respond['data']["result"]["songs"])
+
+          var list=respond['data']["result"]["songs"]
+          var artists="";
+
+          for(var t=0;t<list[0]["artists"].length;++t)
+          {
+            if(t!==list[0]["artists"].length-1)
+            {
+              artists+=list[0]["artists"][t]["name"].toString()+"、";
+            }
+            else
+            {
+              artists+=list[0]["artists"][t]["name"].toString()
+            }
+          }
+          var albumName=list[0]['album']['name'];
+          var currentMusic= list[0]["name"]+"-"+artists+"-《"+albumName+"》";
+          // var currentMusic= list[0]["name"]+"-"+artists;
+          document.getElementById("albumImg").setAttribute("title",'《'+albumName+"》")
+          // console.log("当前正在播放："+currentMusic)
+          document.getElementById("currentMusic").innerHTML=currentMusic;
+
+          //添加专辑图片：接口：https://music.163.com/api/album/90743831
+          var albumId=list[0]['album']['id'];
+          console.log("专辑id：",albumId)
+          axios.get('http://musicapi.leanapp.cn/album?id='+albumId)
+              .then(function (respond) {
+                // console.log("1:",respond);
+                // console.log("2:",respond['data'])
+                var albumUrl=respond['data']["album"]["blurPicUrl"];
+                // console.log("专辑信息："+albumUrl);
+                document.getElementById("albumImg").setAttribute("src",albumUrl);
+
+              })
+              .catch(function (error) {
+                console.log(error);
+                // alert("歌曲搜索失败！")
+              });
+
+        })
+        .catch(function (error) {
+          console.log(error);
+          // alert("歌曲搜索失败！")
+        });
+
+  }
+
+  function addMusicInfoToTable(musicInfo,musicId){
+    let parent=document.getElementById("musicListTable");
+    let tr=document.createElement("tr");
+    tr.append(musicInfo);
+    tr.id=musicId
+    tr.setAttribute("onclick","playmusic()")
+    parent.appendChild(tr);
+  }
+
+  function addMusicToTable(list){
+    console.log("歌曲列表：",list)
+    var length=list.length;
+    console.log("歌曲数量：",length)
+    for(var i=0;i<length;++i)
+    {
+      var artists="";
+
+      for(var t=0;t<list[i]["artists"].length;++t)
+      {
+        if(t!==list[i]["artists"].length-1)
+        {
+          artists+=list[i]["artists"][t]["name"].toString()+"、";
+        }
+        else
+        {
+          artists+=list[i]["artists"][t]["name"].toString()
+        }
+      }
+      var info=list[i]["name"]+"-"+artists;
+      // console.log(info);
+      var musicId=list[i]["id"];
+      addMusicInfoToTable(info,musicId);
+
+    }
+
+    // audio.src="https://music.163.com/song/media/outer/url?id=1465162316.mp3";
+
+
+
+  }
+
+  function searchMusic(){
+    //清空table标签下的元素
+    document.getElementById("musicListTable").innerHTML = "";
+    console.log("获取搜索内容:");
+    var searchContent=document.getElementById("musicSearch").value;
+    console.log(searchContent);
+    //获取歌曲列表
+    axios.get('http://musicapi.leanapp.cn/search?keywords='+searchContent)
+        .then(function (respond) {
+          // console.log(respond);
+          // console.log(respond['data']["result"]["songs"])
+          addMusicToTable(respond['data']["result"]["songs"]);  //执行回调函数
+        })
+        .catch(function (error) {
+          console.log(error);
+          // alert("歌曲搜索失败！")
+        });
+
+    // var mlist=getMusicList(searchContent);
+    // console.log("歌曲列表：",mlist)
+    // addMusicToTable(list);
+  }
+
+
+</script>
+</body>
+
+</html>
